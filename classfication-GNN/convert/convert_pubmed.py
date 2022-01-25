@@ -121,6 +121,4 @@ if __name__ == "__main__":
 
     # dataset name, pubmed
     dataset_name = 'pubmed'
-    #graphsaint(datastr, dataset_name)
-    
-    print(f"path:{path}")
+    graphsaint(datastr, dataset_name)
