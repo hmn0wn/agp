@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Your file storage path. For example, this is shown below.
     import pathlib
     path = pathlib.Path(__file__).parent.resolve()
-    datastr = "path/../data/pubmed.npz"
+    datastr = f"{path}/../data/pubmed.npz"
 
     # dataset name, pubmed
     dataset_name = 'pubmed'
