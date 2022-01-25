@@ -115,8 +115,12 @@ def graphsaint(datastr, dataset_name):
 
 if __name__ == "__main__":
     # Your file storage path. For example, this is shown below.
-    datastr = "/home/user/proj/AGP/classfication-GNN/data/pubmed.npz"
+    import pathlib
+    path = pathlib.Path(__file__).parent.resolve()
+    datastr = "path/../data/pubmed.npz"
 
     # dataset name, pubmed
     dataset_name = 'pubmed'
-    graphsaint(datastr, dataset_name)
+    #graphsaint(datastr, dataset_name)
+    
+    print(f"path:{path}")
