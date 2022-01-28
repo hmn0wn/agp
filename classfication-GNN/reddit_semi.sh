@@ -1,0 +1,3 @@
+python3 -u multiclass.py --dataset reddit_semi --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --layer 1 --epochs 100 --dropout 0.3 --hidden 64 --batch 512
+#python3 -u multiclass.py --dataset reddit --agp_alg gdc_agp  --ti 3 --rmax 1e-7 --L 20 --lr 0.0001 --dropout 0.3 --hidden 2048 --batch 10000
+#python3 -u multiclass.py --dataset reddit --agp_alg sgc_agp --rmax 1e-8 --L 10 --lr 0.0001 --dropout 0.3 --hidden 2048 --batch 10000

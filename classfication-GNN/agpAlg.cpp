@@ -40,7 +40,7 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     {
         size_t rtn = fread(pl.data(), sizeof pl[0], pl.size(), f2);
         if(rtn!=n+1)
-            cout<<"Error! "<<dataset_pl<<" Incorrect read!"<<endl;
+            cout<<"Error! "<<dataset_pl<<" Incorrect read!" << rtn << " " << n+1 <<endl;
         fclose(f2);
     }
     else

@@ -6,9 +6,9 @@ from torch.utils.data import Dataset
 from propagation import AGP
 
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
-	if datastr=="pubmed":
-		train_m = 0; train_n = 61
-		full_m = 88648; full_n = 19718
+	if datastr=="pubmed_semi":
+		train_m = 0; train_n = 60
+		full_m = 88648; full_n = 19717
 	if datastr=="Amazon2M":
 		train_m=62382461; train_n=1709997
 		full_m=126167053; full_n=2449029
@@ -18,6 +18,10 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 	if datastr=='reddit':
 		train_m=10907170; train_n=153932
 		full_m=23446803; full_n=232965
+	if datastr=='reddit_semi':
+		train_m=1144; train_n=820
+		full_m=114615892; full_n=232965
+
 	py_agp=AGP()
 	print("--------------------------")
 	print("For train features propagation:")
