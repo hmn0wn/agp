@@ -102,8 +102,6 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=True):
     print(f"adj_full:{adj_full}")
     
     adj_train = adj_full[train_idx, :][:, train_idx]
-    adj_train = adj_train + sp.eye(adj_train.shape[0])
-    adj_full = adj_full + sp.eye(adj_full.shape[0])
     train_feats = feats[train_idx]
     
     if normalize_feats_agp:
