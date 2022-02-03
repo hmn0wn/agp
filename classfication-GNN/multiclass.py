@@ -53,22 +53,31 @@ torch_dataset = Data.TensorDataset(features_train, labels[idx_train])
 loader = Data.DataLoader(dataset=torch_dataset,batch_size=args.batch,shuffle=True,num_workers=40)
 
 def train():
+    t0_tr = time.perf_counter()
     model.train()
+    time_train = time.perf_counter() - t0_tr
     loss_list = []
     time_epoch = 0
-    
+    time_cuda = 0
+    time_etc = 0
     for step, (batch_x, batch_y) in enumerate(loader):
+        t0 = time.perf_counter()
         batch_x = batch_x.cuda(args.dev)
         batch_y = batch_y.cuda(args.dev)
-        t1 = time.time()
+        time_cuda+=(time.perf_counter() - t0)
+        t1 = time.perf_counter()
         optimizer.zero_grad()
         output = model(batch_x)
         loss_train = loss_fn(output, batch_y)
         loss_train.backward()
         optimizer.step()
-        time_epoch+=(time.time()-t1)
+        time_epoch+=(time.perf_counter()-t1)
+        t2 = time.perf_counter()
         loss_list.append(loss_train.item())
-    return np.mean(loss_list),time_epoch
+        mean = np.mean(loss_list)
+        time_etc+=(time.perf_counter()-t2)
+    print(f"  inside:\t{time.perf_counter() - t0_tr:.4f} vs {time_epoch + time_cuda + time_etc + time_train:.4f}")
+    return mean,time_epoch, time_cuda, time_etc, time_train
 
 
 def validate():
@@ -85,43 +94,52 @@ def test():
         output = model(features[idx_test].cuda(args.dev))
         micro_test = muticlass_f1(output, labels[idx_test])
         return micro_test.item()
-    
-train_time = 0
-bad_counter = 0
-best = 0
-best_epoch = 0
-print("--------------------------")
-print("Training...")
-for epoch in range(args.epochs):
-    loss_tra,train_ep = train()
-    train_time+=train_ep
 
-    val_acc=validate()
-    if(epoch+1)%50== 0:
-        print(f'Epoch:{epoch+1:02d},'
-            f'Train_loss:{loss_tra:.3f}',
-            f'Valid_acc:{100*val_acc:.2f}%',
-            f'Time_cost{train_time:.3f}')
-    if val_acc > best:
-        best = val_acc
-        best_epoch = epoch+1
-        torch.save(model.state_dict(), checkpt_file)
-        bad_counter = 0
-    else:
-        bad_counter += 1
+def eval():
+    train_time = 0
+    train_time_all = 0
+    bad_counter = 0
+    best = 0
+    best_epoch = 0
+    print("--------------------------")
+    print("Training...")
+    for epoch in range(args.epochs):
+        tr_t0 = time.perf_counter()
+        loss_tra,train_ep, time_cuda, time_etc, time_train = train()
+        train_time_all+=time.perf_counter() - tr_t0
+        print(f"tr_time:\t{time.perf_counter() - tr_t0:.4f} \ntr_in:\t{train_ep + time_cuda + time_etc + time_train:.4f}")
+        train_time+=train_ep
 
-    if bad_counter == args.patience:
-        break
+        val_acc=validate()
+        if(epoch+1)%50== 0:
+            print(f'Epoch:{epoch+1:02d},'
+                f'Train_loss:{loss_tra:.3f}',
+                f'Valid_acc:{100*val_acc:.2f}%',
+                f'Time_cost{train_time:.3f}')
+        if val_acc > best:
+            best = val_acc
+            best_epoch = epoch+1
+            bad_counter = 0
+        else:
+            bad_counter += 1
 
-test_acc = test()
-print(f"Train cost: {train_time:.2f}s")
-print('Load {}th epoch'.format(best_epoch))
-print(f"Test accuracy:{100*test_acc:.2f}%")
+        if bad_counter == args.patience:
+            break
 
-memory_main = 1024 * resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/2**30
-memory=memory_main-memory_dataset
-print("Memory overhead:{:.2f}GB".format(memory))
-print("--------------------------")
+    test_acc = test()
+    print(f"Train cost: {train_time:.2f}s")
+    print('Load {}th epoch'.format(best_epoch))
+    print(f"Test accuracy:{100*test_acc:.2f}%")
 
+    memory_main = 1024 * resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/2**30
+    memory=memory_main-memory_dataset
+    print("Memory overhead:{:.2f}GB".format(memory))
+    print("--------------------------")
+    print(f"train_time_all: {train_time_all}")
 
+if False:
+    import cProfile
+    cProfile.run(eval())
+else:
+    eval()
 
