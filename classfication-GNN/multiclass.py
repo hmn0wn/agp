@@ -119,6 +119,7 @@ def eval():
         if val_acc > best:
             best = val_acc
             best_epoch = epoch+1
+            torch.save(model.state_dict(), checkpt_file)
             bad_counter = 0
         else:
             bad_counter += 1
