@@ -10,6 +10,7 @@ import torch.optim as optim
 import torch.utils.data as Data
 from model import GnnAGP
 from utils import load_inductive,muticlass_f1
+from timer_perf import TimerPerf
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -53,32 +54,29 @@ torch_dataset = Data.TensorDataset(features_train, labels[idx_train])
 loader = Data.DataLoader(dataset=torch_dataset,batch_size=args.batch,shuffle=True,num_workers=40)
 
 def train():
-    t0_tr = time.perf_counter()
+    timer = TimerPerf()
+    timer.lap()
     model.train()
-    time_train = time.perf_counter() - t0_tr
     loss_list = []
-    time_epoch = 0
-    time_cuda = 0
-    time_etc = 0
-    for step, (batch_x, batch_y) in enumerate(loader):
-        t0 = time.perf_counter()
+    en = enumerate(loader)
+    time_ep = 0
+    timer.lap("enum")
+    for step, (batch_x, batch_y) in en:
         batch_x = batch_x.cuda(args.dev)
         batch_y = batch_y.cuda(args.dev)
-        time_cuda+=(time.perf_counter() - t0)
-        t1 = time.perf_counter()
+        timer.lap("cuda")
+        t0 = time.perf_counter()
         optimizer.zero_grad()
         output = model(batch_x)
         loss_train = loss_fn(output, batch_y)
         loss_train.backward()
         optimizer.step()
-        time_epoch+=(time.perf_counter()-t1)
-        t2 = time.perf_counter()
+        time_ep = time.perf_counter() - t0
+        timer.lap("epoch")
         loss_list.append(loss_train.item())
         mean = np.mean(loss_list)
-        time_etc+=(time.perf_counter()-t2)
-    print(f"  inside:\t{time.perf_counter() - t0_tr:.4f} vs {time_epoch + time_cuda + time_etc + time_train:.4f}")
-    return mean,time_epoch, time_cuda, time_etc, time_train
-
+        timer.lap("train_etc")
+    return mean, time_ep, timer
 
 def validate():
     model.eval()
@@ -97,25 +95,27 @@ def test():
 
 def eval():
     train_time = 0
-    train_time_all = 0
     bad_counter = 0
     best = 0
     best_epoch = 0
+    glob_timer = TimerPerf()
+    time_eps = 0
     print("--------------------------")
     print("Training...")
     for epoch in range(args.epochs):
-        tr_t0 = time.perf_counter()
-        loss_tra,train_ep, time_cuda, time_etc, time_train = train()
-        train_time_all+=time.perf_counter() - tr_t0
-        print(f"tr_time:\t{time.perf_counter() - tr_t0:.4f} \ntr_in:\t{train_ep + time_cuda + time_etc + time_train:.4f}")
-        train_time+=train_ep
+        loss_tra, time_ep, timer = train()
+        time_eps += time_ep
+        glob_timer.merge(timer)
+        #timer.print()
+        print(f"ep:{epoch} {range(args.epochs)} time_eps: {time_ep:.4f} :time:{timer.get('epoch'):.4f}")
 
         val_acc=validate()
         if(epoch+1)%50== 0:
             print(f'Epoch:{epoch+1:02d},'
                 f'Train_loss:{loss_tra:.3f}',
-                f'Valid_acc:{100*val_acc:.2f}%',
-                f'Time_cost{train_time:.3f}')
+                f'Valid_acc:{100*val_acc:.2f}% ',
+                f"Train_timer:{glob_timer.get('epoch'):.3f}")
+            glob_timer.print()
         if val_acc > best:
             best = val_acc
             best_epoch = epoch+1
@@ -135,7 +135,7 @@ def eval():
     memory=memory_main-memory_dataset
     print("Memory overhead:{:.2f}GB".format(memory))
     print("--------------------------")
-    print(f"train_time_all: {train_time_all}")
+    print(f"train_time_all: {glob_timer.total()}")
 
 if False:
     import cProfile
