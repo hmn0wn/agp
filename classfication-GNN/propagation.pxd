@@ -9,4 +9,4 @@ cdef extern from "agpAlg.cpp":
 cdef extern from "agpAlg.h" namespace "propagation":
 	cdef cppclass Agp:
 		Agp() except+
-		double agp_operation(string,string,uint,uint,int,double,double,double,Map[MatrixXd] &)
+		double agp_operation(string,string,uint,uint,int,double,double,double,Map[MatrixXd] &, float &, float &)

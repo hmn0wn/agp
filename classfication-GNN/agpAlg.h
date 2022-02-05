@@ -40,7 +40,7 @@ namespace propagation{
         vector<double>Du_a;
         vector<double>Du_b;
         //vector<double>Du;
-        double agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat);
+        double agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat, double &prep_t, double &cclock_t);
         void sgc_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed);
         void appnp_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed);
         void gdc_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed);

@@ -5,9 +5,10 @@ using namespace Eigen;
 namespace propagation
 {
 
-double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat)
+double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat, double &prep_t, double &cclock_t)
 {
-
+    cout << "prep_t: " << prep_t << endl;
+    cout << "cclock_t: " << cclock_t << endl;
     int NUMTHREAD=1; //Number of threads
     rmax=rmaxx;
     m=mm;
@@ -25,12 +26,12 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     {
         size_t rtn = fread(el.data(), sizeof el[0], el.size(), f1);
         if(rtn!=m)
-            cout<<"Error! "<<dataset_el<<" Incorrect read! " << rtn <<endl;
+            cout<<"Error! "<<dataset_el<<" Incorrect read! " << rtn <<"\r"<<endl;
         fclose(f1);
     }
     else
     {
-        cout<<dataset_el<<" Not Exists."<<endl;
+        cout<<dataset_el<<" Not Exists.\r"<<endl;
         exit(1);
     }
     string dataset_pl="data/"+dataset+"_adj_pl.txt";
@@ -40,16 +41,16 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     {
         size_t rtn = fread(pl.data(), sizeof pl[0], pl.size(), f2);
         if(rtn!=n+1)
-            cout<<"Error! "<<dataset_pl<<" Incorrect read!" << rtn << " " << n+1 <<endl;
+            cout<<"Error! "<<dataset_pl<<" Incorrect read!" << rtn << " " << n+1 <<"\r"<<endl;
         fclose(f2);
     }
     else
     {
-        cout<<dataset_pl<<" Not Exists."<<endl;
+        cout<<dataset_pl<<" Not Exists."<<"\r"<<endl;
         exit(1);
     }
 
-    cout << "read finished"<<endl;
+    cout << "read finished\r"<<endl;
     int dimension=feat.rows();
     vector<thread> threads;
     Du_a=vector<double>(n,0);
@@ -89,11 +90,10 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     }
 
     struct timeval t_start,t_end;
-    double timeCost;
     clock_t start_t, end_t;
     gettimeofday(&t_start,NULL);
 
-    cout<<"Begin propagation..."<<endl;
+    cout<<"Begin propagation..."<<"\r"<<endl;
     int ti,start;
     int ends=0;
     start_t = clock();
@@ -123,11 +123,11 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
         threads[t].join();
     vector<thread>().swap(threads);
     end_t = clock();
-    double total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+    cclock_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
     gettimeofday(&t_end, NULL);
-    timeCost = t_end.tv_sec - t_start.tv_sec + (t_end.tv_usec - t_start.tv_usec)/1000000.0;
-    cout<<"The propagation time: "<<timeCost<<" s"<<endl;
-    cout<<"The clock time : "<<total_t<<" s"<<endl;
+    prep_t = t_end.tv_sec - t_start.tv_sec + (t_end.tv_usec - t_start.tv_usec)/1000000.0;
+    cout<<"The propagation time: "<<prep_t<<" s"<<"\r"<<endl;
+    cout<<"The clock time : "<<cclock_t<<" s"<<"\r"<<endl;
     double dataset_size=(double)(((long long)m+n)*4+(long long)n*dimension*8)/1024.0/1024.0/1024.0;
     return dataset_size;
 }

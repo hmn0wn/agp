@@ -1,1 +1,1 @@
-python3  multiclass.py --dataset pubmed_semi --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --layer 1 --epochs 100 --dropout 0.3 --hidden 64 --batch 512
+python3  multiclass.py --dataset cora_full_semi --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --layer 1 --epochs 200 --dropout 0.3 --hidden 64 --batch 512 --patience 20 --rep_num 20| tee last_pubmed.log

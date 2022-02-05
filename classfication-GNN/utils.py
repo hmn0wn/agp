@@ -6,6 +6,10 @@ from torch.utils.data import Dataset
 from propagation import AGP
 
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
+
+	if datastr=="cora_full_semi":
+		train_m = 854; train_n = 1392
+		full_m = 125370; full_n = 18800
 	if datastr=="pubmed_semi":
 		train_m = 0; train_n = 60
 		full_m = 88648; full_n = 19717
@@ -23,15 +27,19 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 		full_m=114615892; full_n=232965
 
 	py_agp=AGP()
-	print("--------------------------")
-	print("For train features propagation:")
+	print("--------------------------", flush=True)
+	print("For train features propagation:", flush=True)
 	features_train=np.load('data/'+datastr+'_train_feat.npy')
-	_=py_agp.agp_operation(datastr+'_train',agp_alg,train_m,train_n,L,rmax,alpha,t,features_train)
-	
+	train_prop_t = np.array([0],dtype=np.double)
+	train_prop_clock_t = np.array([0],dtype=np.double)
+	print("train_prop_t ",  train_prop_t)
+	_=py_agp.agp_operation(datastr+'_train',agp_alg,train_m,train_n,L,rmax,alpha,t,features_train, train_prop_t, train_prop_clock_t )
+	print("train_prop_t ", train_prop_t)
 	features =np.load('data/'+datastr+'_feat.npy')
-	print("--------------------------")
-	print("For full features propagation:")
-	memory_dataset=py_agp.agp_operation(datastr+'_full',agp_alg,full_m,full_n,L,rmax,alpha,t,features)
+	print("--------------------------", flush=True)
+	print("For full features propagation:", flush=True)
+	full_prop_t, full_prop_clock_t = np.array([0],dtype=np.double), np.array([0],dtype=np.double)
+	memory_dataset=py_agp.agp_operation(datastr+'_full',agp_alg,full_m,full_n,L,rmax,alpha,t,features,full_prop_t, full_prop_clock_t)
 
 	features_train = torch.FloatTensor(features_train)
 	features = torch.FloatTensor(features)
@@ -45,7 +53,7 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 	idx_val = torch.LongTensor(idx_val)
 	idx_test = torch.LongTensor(idx_test)
 	
-	return features_train,features,labels,idx_train,idx_val,idx_test,memory_dataset
+	return features_train,features,labels,idx_train,idx_val,idx_test,memory_dataset, train_prop_t[0], train_prop_clock_t[0] , full_prop_t[0], full_prop_clock_t[0]
 
 def load_transductive(datastr,agp_alg,alpha,t,rmax,L):
 	if(datastr=="papers100M"):

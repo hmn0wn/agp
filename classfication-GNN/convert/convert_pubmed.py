@@ -59,7 +59,7 @@ def graphsave(adj, dir):
         print("Format Error!")
 
 
-def load_data_semi(dataset_path, prefix, normalize=True, agp_load=True, seed=0):
+def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0):
     ntrain_div_classes = 20 
     normalize_feats_agp = False
     if agp_load:
@@ -108,7 +108,7 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=True, seed=0):
         scaler.fit(train_feats)
         feats = scaler.transform(feats)
 
-    if 'pubmed' in dataset_path:
+    if 'pubmed' in prefix or 'cora_full' in prefix:
         feats = feats.toarray()
         train_feats = train_feats.toarray()
 
@@ -117,16 +117,17 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=True, seed=0):
 
 def graphsaint(datastr, dataset_name, agp_load):
     
-    #if dataset_name == 'pubmed':
+    dataset_name = 'pubmed'
     semi_name = f"{dataset_name}_semi"
     adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data_semi(datastr, semi_name, agp_load=agp_load)
-    graphsave(adj_full, dir=f'../data/{semi_name}_full_adj_')
-    graphsave(adj_train, dir=f'../data/{semi_name}_train_adj_')
+    graphsave(adj_full, dir=f'{datastr}/{semi_name}_full_adj_')
+    graphsave(adj_train, dir=f'{datastr}/{semi_name}_train_adj_')
+    #print(feats)
     feats = np.array(feats, dtype=np.float64)
     train_feats = np.array(train_feats , dtype=np.float64)
-    np.save(f'../data/{semi_name}_feat.npy', feats)
-    np.save(f'../data/{semi_name}_train_feat.npy', train_feats)
-    np.savez(f'../data/{semi_name}_labels.npz', labels=labels, idx_train=idx_train, idx_val=idx_val, idx_test=idx_test)
+    np.save(f'{datastr}/{semi_name}_feat.npy', feats)
+    np.save(f'{datastr}/{semi_name}_train_feat.npy', train_feats)
+    np.savez(f'{datastr}/{semi_name}_labels.npz', labels=labels, idx_train=idx_train, idx_val=idx_val, idx_test=idx_test)
 
 
 if __name__ == "__main__":
@@ -136,9 +137,12 @@ if __name__ == "__main__":
 
     mkdir(f"{path}/../pretrained")
     mkdir(f"{path}/dataset")
-
-    dataset_name = sys.argv[1]
-    agp_load = sys.argv[2]=="True"
+    dataset_name = "pubmed"
+    agp_load = False
     datastr = f"{path}/../data"
+    #datastr = f"{path}/data"
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1]
+        agp_load = sys.argv[2]=="True"
 
     graphsaint(datastr, dataset_name, agp_load)
