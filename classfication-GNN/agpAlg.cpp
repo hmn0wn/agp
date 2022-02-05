@@ -7,8 +7,8 @@ namespace propagation
 
 double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat, double &prep_t, double &cclock_t)
 {
-    cout << "prep_t: " << prep_t << endl;
-    cout << "cclock_t: " << cclock_t << endl;
+    //cout << "prep_t: " << prep_t << endl;
+    //cout << "cclock_t: " << cclock_t << endl;
     int NUMTHREAD=1; //Number of threads
     rmax=rmaxx;
     m=mm;
