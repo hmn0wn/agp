@@ -12,6 +12,8 @@ from model import GnnAGP
 from utils import load_inductive,muticlass_f1
 from timer_perf import TimerPerf
 
+BR_LEN = 100
+BR_LENH = BR_LEN // 2
 results = {"accur" : [], 
 "memGB" : [], 
 "time_train" : [],
@@ -55,10 +57,11 @@ def train():
     timer = TimerPerf()
     timer.lap()
     model.train()
+    timer.lap("train.train")
     loss_list = []
     en = enumerate(loader)
-    time_ep = 0
     timer.lap("enum")
+    time_ep = 0
     for step, (batch_x, batch_y) in en:
         batch_x = batch_x.cuda(args.dev)
         batch_y = batch_y.cuda(args.dev)
@@ -98,7 +101,7 @@ def run(seed):
     best_epoch = 0
     geval_timer = TimerPerf()
     time_eps = 0
-    print("--------------------------")
+    print("-"*BR_LENH)
     print("Training...")
     for epoch in range(args.epochs):
         loss_tra, time_ep, timer = train()
@@ -108,7 +111,7 @@ def run(seed):
         print(f"ep:{epoch} : {timer.get('epoch'):.4f}", end=" | ")
 
         val_acc=validate()
-        if(epoch+1)%50== 0:
+        if(epoch+1)%5== 0:
             print(f'Epoch:{epoch+1:02d},'
                 f'Train_loss:{loss_tra:.3f}',
                 f'Valid_acc:{100*val_acc:.2f}% ',
@@ -126,15 +129,16 @@ def run(seed):
             break
 
     test_acc = test()
-    print(f"Train cost: {train_time:.2f}s")
-    print('Load {}th epoch'.format(best_epoch))
-    print(f"Test accuracy:{100*test_acc:.2f}%")
+    geval_timer("test")
+    print(f"Train cost: {time_eps:>10.2f}s")
+    print(f'Load {best_epoch:>10}th epoch')
+    print(f"Test accuracy:{100*test_acc:>10.2f}%")
 
     memory_main = 1024 * resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/2**30
     memory=memory_main-memory_dataset
-    print("Memory overhead:{:.2f}GB".format(memory))
-    print("--------------------------")
-    print(f"train_time_all: {geval_timer.total()}")
+    print(f"Memory overhead:{memory:>10.2f}GB")
+    print("-"*BR_LENH)
+    print(f"train_time_all: {geval_timer.total():>10}")
     global_timer.merge(geval_timer)
 
 
@@ -145,17 +149,17 @@ def run(seed):
 
 global_timer.lap()
 for seed in range(0,args.rep_num):
-
-    print("#"*100)
-    print("#"*100)
+    
+    print("#"*BR_LEN)
+    print("#"*BR_LEN)
     print(f"Seed: {seed}")
-    print("-"*20)
+    print("-"*BR_LENH)
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
-    print("--------------------------", flush=True)
+    print("-"*BR_LENH, flush=True)
     print(args)
     global_timer.lap("seed")
 
@@ -181,13 +185,14 @@ for seed in range(0,args.rep_num):
     if False:
         import cProfile
         cProfile.run(run())
-    else:
-        
+    else:        
         run(seed)
+        global_timer.lap("run")
 print("Global timer:")
 global_timer.print()
 
-print("="*50)
+print("="*BR_LEN)
 for key, value in results.items():
-    print(f"{key:>20}: { ' '.join(map(str, value)):<50} | avg: {sum(value)/len(value):<10.4f} of num: {len(value)}")
-print("="*50)
+    vals = ' '.join([f"{v:.4}" for v in value])
+    print(f"{key:>20}: avg: {sum(value)/len(value):<5.4f} of num: {len(value)} in {vals}")
+print("="*BR_LEN)

@@ -4,6 +4,8 @@ import numpy as np
 from sklearn.metrics import f1_score
 from torch.utils.data import Dataset
 from propagation import AGP
+import os, psutil
+
 
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 
@@ -27,14 +29,14 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 		full_m=114615892; full_n=232965
 
 	py_agp=AGP()
+	process = psutil.Process(os.getpid())
+	ram_start = process.memory_info().rss
 	print("--------------------------", flush=True)
 	print("For train features propagation:", flush=True)
 	features_train=np.load('data/'+datastr+'_train_feat.npy')
 	train_prop_t = np.array([0],dtype=np.double)
 	train_prop_clock_t = np.array([0],dtype=np.double)
-	print("train_prop_t ",  train_prop_t)
 	_=py_agp.agp_operation(datastr+'_train',agp_alg,train_m,train_n,L,rmax,alpha,t,features_train, train_prop_t, train_prop_clock_t )
-	print("train_prop_t ", train_prop_t)
 	features =np.load('data/'+datastr+'_feat.npy')
 	print("--------------------------", flush=True)
 	print("For full features propagation:", flush=True)
@@ -52,7 +54,6 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 	idx_train = torch.LongTensor(idx_train)
 	idx_val = torch.LongTensor(idx_val)
 	idx_test = torch.LongTensor(idx_test)
-	
 	return features_train,features,labels,idx_train,idx_val,idx_test,memory_dataset, train_prop_t[0], train_prop_clock_t[0] , full_prop_t[0], full_prop_clock_t[0]
 
 def load_transductive(datastr,agp_alg,alpha,t,rmax,L):

@@ -3,6 +3,8 @@ from collections import OrderedDict
 
 import itertools
 
+BR_LEN = 100
+BR_LENH = BR_LEN // 2
 class TimerPerf:
     def __init__(self):
         self._prev_time = None
@@ -50,7 +52,7 @@ class TimerPerf:
             
     def print(self):
         #print(f"var:{type(itertools.count(0)).__name__}")
-        print("-"*50)
+        print("-"*BR_LENH)
         for key, value in self._laps.items():
             print(f"{key:>20}: {value[0]:<10.4f} | avg: {value[0]/value[1]:<10.4f} of num: {value[1]}")
-        print("="*50)
+        print("="*BR_LENH)

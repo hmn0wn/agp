@@ -1,6 +1,76 @@
 #include "agpAlg.h"
+
+#include "sys/types.h"
+#include "sys/sysinfo.h"
+#include "stdlib.h"
+#include "stdio.h"
+#include "string.h"
+
 using namespace std;
 using namespace Eigen;
+
+int parseLine(char* line)
+{
+    // This assumes that a digit will be found and the line ends in " Kb".
+    int i = strlen(line);
+    const char* p = line;
+    while (*p <'0' || *p > '9') p++;
+    line[i-3] = '\0';
+    i = atoi(p);
+    return i;
+}
+
+int get_cur_proc_vram()
+{ //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmSize:", 7) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+    long long totalVirtualMem = memInfo.totalram;
+    //Add other values in next statement to avoid int overflow on right hand side...
+    totalVirtualMem += memInfo.totalswap;
+    totalVirtualMem *= memInfo.mem_unit;
+    cout.precision(3);
+    cout << "\tcur_proc_vram: " << result / 1000000.f<< "mb of " << totalVirtualMem / 1000000<< "mb" << endl;
+    return result;
+}
+
+int get_cur_proc_ram()
+{
+    //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+    long long totalPhysMem = memInfo.totalram;
+    //Multiply in next statement to avoid int overflow on right hand side...
+    totalPhysMem *= memInfo.mem_unit;
+
+    cout.precision(3);
+    cout << "\tcur_proc_ram : " << result / 1000000.f << "mb of " << totalPhysMem / 1000000<< "mb" << endl;
+
+    return result;
+}
 
 namespace propagation
 {
@@ -9,6 +79,11 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
 {
     //cout << "prep_t: " << prep_t << endl;
     //cout << "cclock_t: " << cclock_t << endl;
+    cout << "agp_operation():" << endl;
+    cout << "--------------------------" << endl;
+    get_cur_proc_vram();
+    get_cur_proc_ram(); 
+    cout << "--------------------------" << endl;
     int NUMTHREAD=1; //Number of threads
     rmax=rmaxx;
     m=mm;
@@ -17,7 +92,6 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     alpha=alphaa;
     t=tt;
     dataset_name=dataset;
-
     el=vector<uint>(m);
     pl=vector<uint>(n+1);
     string dataset_el="data/"+dataset+"_adj_el.txt";
@@ -50,7 +124,7 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
         exit(1);
     }
 
-    cout << "read finished\r"<<endl;
+    cout << "Read finished\r"<<endl;
     int dimension=feat.rows();
     vector<thread> threads;
     Du_a=vector<double>(n,0);
@@ -129,6 +203,9 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     cout<<"The propagation time: "<<prep_t<<" s"<<"\r"<<endl;
     cout<<"The clock time : "<<cclock_t<<" s"<<"\r"<<endl;
     double dataset_size=(double)(((long long)m+n)*4+(long long)n*dimension*8)/1024.0/1024.0/1024.0;
+    get_cur_proc_vram();
+    get_cur_proc_ram();
+    cout << "--------------------------" << endl;
     return dataset_size;
 }
 
@@ -250,6 +327,10 @@ void Agp::sgc_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
 //APPNP_AGP
 void Agp::appnp_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
 {
+    cout << "appnp_agp():" << st << " " << ed << endl;
+    get_cur_proc_vram();
+    get_cur_proc_ram(); 
+    cout << "--------------------------" << endl;
     uint seed=time(NULL)^pthread_self();
     double** residue=new double*[2];
     for(int i=0; i<2; i++)
@@ -346,6 +427,8 @@ void Agp::appnp_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
             }
         }
     }
+    get_cur_proc_vram();
+    get_cur_proc_ram(); 
     for(int i=0; i<2; i++)
         delete[] residue[i];
     delete[] residue;
