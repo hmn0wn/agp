@@ -117,9 +117,8 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0)
 
 def graphsaint(datastr, dataset_name, agp_load):
     
-    dataset_name = 'pubmed'
+    adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data_semi(datastr, dataset_name, agp_load=agp_load)
     semi_name = f"{dataset_name}_semi"
-    adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data_semi(datastr, semi_name, agp_load=agp_load)
     graphsave(adj_full, dir=f'{datastr}/{semi_name}_full_adj_')
     graphsave(adj_train, dir=f'{datastr}/{semi_name}_train_adj_')
     #print(feats)
@@ -137,8 +136,12 @@ if __name__ == "__main__":
 
     mkdir(f"{path}/../pretrained")
     mkdir(f"{path}/dataset")
-    dataset_name = "pubmed"
+    
+    dataset_name = "amazon"
     agp_load = False
+    if dataset_name == "amazon":
+        agp_load = True
+
     datastr = f"{path}/../data"
     #datastr = f"{path}/data"
     if len(sys.argv) > 1:

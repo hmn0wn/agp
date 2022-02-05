@@ -1,1 +1,3 @@
-python3  multiclass.py --dataset pubmed_semi --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --layer 1 --epochs 10 --dropout 0.3 --hidden 64 --batch 512 --patience 20 --rep_num 20| tee last_pubmed.log
+python3 -m memory_profiler multiclass.py  --dataset reddit_semi   --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --dropout 0.3 --hidden 32   --batch 512  --layer 1 --epochs 200 --patience 200 --rep_num 1| tee last_pubmed.log
+#python3 -m memory_profiler multiclass.py --dataset reddit_semi    --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20 --lr 0.0001 --dropout 0.3 --hidden 2048 --batch 512
+#python3 -m memory_profiler multiclass.py --dataset amazon         --agp_alg appnp_agp --alpha 0.1 --rmax 1e-7 --L 20  --lr 0.01   --dropout 0.1 --hidden 1024 --batch 512

@@ -11,13 +11,13 @@ import sklearn.preprocessing
 import json
 import time
 import scipy.sparse
-from utils_bsa import train_stopping_split
+from mutils import train_stopping_split
 from sparsegraph import SparseGraph
 import struct
 from sklearn.preprocessing import StandardScaler
 
 def load_graph():
-    dataset_path = '/home/test/Documents/genpr_master/genpr/bsa_appnp/data/amazon'
+    dataset_path = '/home/user/proj/AGP/classfication-GNN/data/amazon'
     adj_matrix = scipy.sparse.load_npz('{}/adj_full.npz'.format(dataset_path))
 
     attr_matrix = np.load('{}/feats.npy'.format(dataset_path))
@@ -41,7 +41,7 @@ def load_graph():
     return g
 
 def load_data(ntrain_div_classes, seed=0):
-    dataset_path = '/home/test/Documents/genpr_master/genpr/bsa_appnp/data/amazon'
+    dataset_path = '/home/user/proj/AGP/classfication-GNN/data/amazon'
     adj_matrix = scipy.sparse.load_npz('{}/adj_full.npz'.format(dataset_path))
 
     attr_matrix = np.load('{}/feats.npy'.format(dataset_path))

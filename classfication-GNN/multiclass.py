@@ -11,12 +11,14 @@ import torch.utils.data as Data
 from model import GnnAGP
 from utils import load_inductive,muticlass_f1
 from timer_perf import TimerPerf
+from memory_profiler import profile
 
 BR_LEN = 100
 BR_LENH = BR_LEN // 2
 results = {"accur" : [], 
 "memGB" : [], 
-"time_train" : [],
+"epochs_time" : [],
+"total_train_time" : [],
 #"time_predict_test" : [],
 #"time_prep" : [],
 "train_prop_t" : [],
@@ -32,23 +34,23 @@ features_train,features,labels,idx_train,idx_val,idx_test,memory_dataset = None,
 parser = argparse.ArgumentParser()
 # Dataset and Algorithom
 #parser.add_argument('--seed', type=int, default=20159, help='random seed..')
-parser.add_argument('--dataset', default='Amazon2M', help='dateset.')
+parser.add_argument('--dataset', default='pubmed_semi', help='dateset.')
 parser.add_argument('--agp_alg',default='appnp_agp',help='APG algorithm.')
 # Algorithm parameters
 parser.add_argument('--alpha', type=float, default=0.2, help='alpha for APPNP_AGP.')
 parser.add_argument('--ti',type=float,default=4,help='t for GDC_AGP.')
-parser.add_argument('--rmax', type=float, default=1e-8, help='threshold.')
+parser.add_argument('--rmax', type=float, default=1e-7, help='threshold.')
 parser.add_argument('--L', type=int, default=3,help='propagation levels.')
 # Learining parameters
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate.')
 parser.add_argument('--weight_decay', type=float, default=0, help='weight decay.')
-parser.add_argument('--layer', type=int, default=4, help='number of layers.')
-parser.add_argument('--hidden', type=int, default=1024, help='hidden dimensions.')
+parser.add_argument('--layer', type=int, default=1, help='number of layers.')
+parser.add_argument('--hidden', type=int, default=256, help='hidden dimensions.')
 parser.add_argument('--dropout', type=float, default=0.1, help='dropout rate.')
 parser.add_argument('--bias', default='bn', help='bias.')
-parser.add_argument('--epochs', type=int, default=1000, help='number of epochs.')
+parser.add_argument('--epochs', type=int, default=10, help='number of epochs.')
 parser.add_argument('--batch', type=int, default=100000, help='batch size.')
-parser.add_argument('--patience', type=int, default=100, help='patience.')
+parser.add_argument('--patience', type=int, default=200, help='patience.')
 parser.add_argument('--dev', type=int, default=0, help='device id.')
 parser.add_argument('--rep_num', type=int, default=1, help='repeat num and calc avg')
 args = parser.parse_args()
@@ -94,6 +96,7 @@ def test():
         micro_test = muticlass_f1(output, labels[idx_test])
         return micro_test.item()
 
+@profile(precision=4)
 def run(seed):
     train_time = 0
     bad_counter = 0
@@ -111,7 +114,7 @@ def run(seed):
         print(f"ep:{epoch} : {timer.get('epoch'):.4f}", end=" | ")
 
         val_acc=validate()
-        if(epoch+1)%5== 0:
+        if(epoch+1)%(args.epochs/4)== 0:
             print(f'Epoch:{epoch+1:02d},'
                 f'Train_loss:{loss_tra:.3f}',
                 f'Valid_acc:{100*val_acc:.2f}% ',
@@ -128,8 +131,9 @@ def run(seed):
         if bad_counter == args.patience:
             break
 
+    geval_timer.lap()
     test_acc = test()
-    geval_timer("test")
+    geval_timer.lap("test")
     print(f"Train cost: {time_eps:>10.2f}s")
     print(f'Load {best_epoch:>10}th epoch')
     print(f"Test accuracy:{100*test_acc:>10.2f}%")
@@ -144,8 +148,10 @@ def run(seed):
 
     results["accur"].append(test_acc)
     results["memGB"].append(memory)
-    results["time_train"].append(geval_timer.get('epoch'))
+    results["epochs_time"].append(geval_timer.get('epoch'))
 
+    total_train_time = geval_timer.get('train.train') + geval_timer.get('enum')+ geval_timer.get('cuda')+ geval_timer.get('epoch')+ geval_timer.get('train_etc')
+    results["total_train_time"].append(total_train_time)
 
 global_timer.lap()
 for seed in range(0,args.rep_num):

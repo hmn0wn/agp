@@ -9,6 +9,10 @@
 using namespace std;
 using namespace Eigen;
 
+#define SHOW_MEM false
+#define THREAD_NUM 6
+
+
 int parseLine(char* line)
 {
     // This assumes that a digit will be found and the line ends in " Kb".
@@ -77,14 +81,16 @@ namespace propagation
 
 double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,double rmaxx,double alphaa,double tt,Eigen::Map<Eigen::MatrixXd> &feat, double &prep_t, double &cclock_t)
 {
+    cout << "THREAD_NUM: " << THREAD_NUM << endl;
     //cout << "prep_t: " << prep_t << endl;
     //cout << "cclock_t: " << cclock_t << endl;
-    cout << "agp_operation():" << endl;
-    cout << "--------------------------" << endl;
-    get_cur_proc_vram();
-    get_cur_proc_ram(); 
-    cout << "--------------------------" << endl;
-    int NUMTHREAD=1; //Number of threads
+    if(SHOW_MEM)
+    {
+        cout << "agp_operation():" << endl;
+        cout << "--------------------------" << endl;
+        get_cur_proc_vram();
+        get_cur_proc_ram(); 
+    }
     rmax=rmaxx;
     m=mm;
     n=nn;
@@ -171,10 +177,10 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     int ti,start;
     int ends=0;
     start_t = clock();
-    for( ti=1 ; ti <= dimension%NUMTHREAD ; ti++ )
+    for( ti=1 ; ti <= dimension%THREAD_NUM ; ti++ )
     {
         start = ends;
-        ends+=ceil((double)dimension/NUMTHREAD);
+        ends+=ceil((double)dimension/THREAD_NUM);
         if(agp_alg=="sgc_agp")
             threads.push_back(thread(&Agp::sgc_agp,this,feat,start,ends));
         else if(agp_alg=="appnp_agp")
@@ -182,10 +188,10 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
         else if(agp_alg=="gdc_agp")
             threads.push_back(thread(&Agp::gdc_agp,this,feat,start,ends));
     }
-    for( ; ti<=NUMTHREAD ; ti++ )
+    for( ; ti<=THREAD_NUM ; ti++ )
     {
         start = ends;
-        ends+=dimension/NUMTHREAD;
+        ends+=dimension/THREAD_NUM;
         if(agp_alg=="sgc_agp")
             threads.push_back(thread(&Agp::sgc_agp,this,feat,start,ends));
         else if(agp_alg=="appnp_agp")
@@ -193,7 +199,7 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
         else if(agp_alg=="gdc_agp")
             threads.push_back(thread(&Agp::gdc_agp,this,feat,start,ends));
     }
-    for (int t = 0; t < NUMTHREAD ; t++)
+    for (int t = 0; t < THREAD_NUM ; t++)
         threads[t].join();
     vector<thread>().swap(threads);
     end_t = clock();
@@ -203,9 +209,11 @@ double Agp::agp_operation(string dataset,string agp_alg,uint mm,uint nn,int LL,d
     cout<<"The propagation time: "<<prep_t<<" s"<<"\r"<<endl;
     cout<<"The clock time : "<<cclock_t<<" s"<<"\r"<<endl;
     double dataset_size=(double)(((long long)m+n)*4+(long long)n*dimension*8)/1024.0/1024.0/1024.0;
-    get_cur_proc_vram();
-    get_cur_proc_ram();
-    cout << "--------------------------" << endl;
+    if(SHOW_MEM)
+    {
+        get_cur_proc_vram();
+        get_cur_proc_ram();
+    }
     return dataset_size;
 }
 
@@ -327,10 +335,12 @@ void Agp::sgc_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
 //APPNP_AGP
 void Agp::appnp_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
 {
-    cout << "appnp_agp():" << st << " " << ed << endl;
-    get_cur_proc_vram();
-    get_cur_proc_ram(); 
-    cout << "--------------------------" << endl;
+    if(SHOW_MEM)
+    {
+        cout << "appnp_agp():" << st << " " << ed << endl;
+        get_cur_proc_vram();
+        get_cur_proc_ram(); 
+    }
     uint seed=time(NULL)^pthread_self();
     double** residue=new double*[2];
     for(int i=0; i<2; i++)
@@ -427,8 +437,11 @@ void Agp::appnp_agp(Eigen::Ref<Eigen::MatrixXd>feats,int st,int ed)
             }
         }
     }
-    get_cur_proc_vram();
-    get_cur_proc_ram(); 
+    if(SHOW_MEM)
+    {
+        get_cur_proc_vram();
+        get_cur_proc_ram(); 
+    }
     for(int i=0; i<2; i++)
         delete[] residue[i];
     delete[] residue;

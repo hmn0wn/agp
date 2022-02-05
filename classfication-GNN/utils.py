@@ -5,10 +5,20 @@ from sklearn.metrics import f1_score
 from torch.utils.data import Dataset
 from propagation import AGP
 import os, psutil
+from memory_profiler import profile
 
+from inspect import currentframe
 
+def get_linenumber():
+    cf = currentframe()
+    return cf.f_back.f_lineno
+
+@profile(precision=4)
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 
+	if datastr=="amazon":
+		train_m = 1950; train_n = 1500
+		full_m = 263793649; full_n = 1066627
 	if datastr=="cora_full_semi":
 		train_m = 854; train_n = 1392
 		full_m = 125370; full_n = 18800
@@ -30,17 +40,22 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 
 	py_agp=AGP()
 	process = psutil.Process(os.getpid())
-	ram_start = process.memory_info().rss
+	ram_prev = process.memory_info().rss
 	print("--------------------------", flush=True)
 	print("For train features propagation:", flush=True)
 	features_train=np.load('data/'+datastr+'_train_feat.npy')
 	train_prop_t = np.array([0],dtype=np.double)
 	train_prop_clock_t = np.array([0],dtype=np.double)
+	ram_delta = process.memory_info().rss - ram_prev
+	ram_prev = process.memory_info().rss
+	print(f"RAM{get_linenumber()}: {ram_delta}")
 	_=py_agp.agp_operation(datastr+'_train',agp_alg,train_m,train_n,L,rmax,alpha,t,features_train, train_prop_t, train_prop_clock_t )
+
 	features =np.load('data/'+datastr+'_feat.npy')
 	print("--------------------------", flush=True)
 	print("For full features propagation:", flush=True)
 	full_prop_t, full_prop_clock_t = np.array([0],dtype=np.double), np.array([0],dtype=np.double)
+
 	memory_dataset=py_agp.agp_operation(datastr+'_full',agp_alg,full_m,full_n,L,rmax,alpha,t,features,full_prop_t, full_prop_clock_t)
 
 	features_train = torch.FloatTensor(features_train)
@@ -54,6 +69,9 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 	idx_train = torch.LongTensor(idx_train)
 	idx_val = torch.LongTensor(idx_val)
 	idx_test = torch.LongTensor(idx_test)
+	ram_delta = process.memory_info().rss - ram_prev
+	ram_prev = process.memory_info().rss
+	print(f"RAM{get_linenumber()}: {ram_delta}")
 	return features_train,features,labels,idx_train,idx_val,idx_test,memory_dataset, train_prop_t[0], train_prop_clock_t[0] , full_prop_t[0], full_prop_clock_t[0]
 
 def load_transductive(datastr,agp_alg,alpha,t,rmax,L):

@@ -6,7 +6,7 @@ from networkx.readwrite import json_graph
 import numpy as np
 import scipy.sparse as sp
 from scipy.sparse import find, csr_matrix
-import utils_bsa as utils
+import mutils as utils
 from read_amazon import load_data as ld
 import sklearn.preprocessing
 import json
