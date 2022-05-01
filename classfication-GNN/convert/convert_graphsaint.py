@@ -44,8 +44,8 @@ def graphsave(adj,dir):
 		print("Format Error!")
 
 def load_data(dataset_path,prefix, normalize=True):
-	adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path,prefix)).astype(np.bool)
-	adj_train = scipy.sparse.load_npz('{}/{}/adj_train.npz'.format(dataset_path,prefix)).astype(np.bool)
+	adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path,prefix)).astype(np.bool_)
+	adj_train = scipy.sparse.load_npz('{}/{}/adj_train.npz'.format(dataset_path,prefix)).astype(np.bool_)
 	role = json.load(open('{}/{}/role.json'.format(dataset_path,prefix)))
 	feats = np.load('{}/{}/feats.npy'.format(dataset_path,prefix))
 	class_map = json.load(open('{}/{}/class_map.json'.format(dataset_path,prefix)))
@@ -55,6 +55,7 @@ def load_data(dataset_path,prefix, normalize=True):
 	train_nodes = np.array(list(set(adj_train.nonzero()[0])))
 	train_feats = feats[train_nodes]
 	scaler = StandardScaler()
+	print("ADDDDDDDDD")
 	scaler.fit(train_feats)
 	feats = scaler.transform(feats)
 	# -------------------------
@@ -70,6 +71,7 @@ def load_data(dataset_path,prefix, normalize=True):
 		offset = min(class_map.values())
 		for k,v in class_map.items():
 			class_arr[k][v-offset] = 1
+
 	node_train = np.array(role['tr'])
 	node_val = np.array(role['va'])
 	node_test = np.array(role['te'])
@@ -84,8 +86,8 @@ def load_data(dataset_path,prefix, normalize=True):
 def graphsaint(datastr,dataset_name):
 	if dataset_name=='yelp':
 		adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data(datastr,'yelp')
-		graphsave(adj_full,dir='../data/yelp_full_adj_')
-		graphsave(adj_train,dir='../data/yelp_train_adj_')
+		graphsave(adj_full,dir=f'{datastr}/yelp_full_adj_')
+		graphsave(adj_train,dir=f'{datastr}/yelp_train_adj_')
 		feats=np.array(feats,dtype=np.float64)
 		train_feats=np.array(train_feats,dtype=np.float64)
 		np.save('../data/yelp_feat.npy',feats)
@@ -107,6 +109,12 @@ if __name__ == "__main__":
 	datastr="../data"
 
 	#dataset name, yelp or reddit
-	dataset_name='reddit'
+	#dataset_name='yelp'
+	#EL: (13954819,)
+	#PL: (716848,)
+	#EL: (7949403,)
+	#PL: (537636,)
+
+	
 	graphsaint(datastr,dataset_name)
 

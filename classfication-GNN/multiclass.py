@@ -37,7 +37,7 @@ loss_fn = None
 checkpt_file = None
 
 
-@profile(precision=4)
+#@profile(precision=4)
 def train():
     timer = TimerPerf()
     timer.lap()
@@ -62,9 +62,11 @@ def train():
         loss_list.append(loss_train.item())
         mean = np.mean(loss_list)
         timer.lap("train_etc")
-    return mean, time_ep, timer
+    torch_mem_gb = torch.cuda.memory_allocated(0)/1024/1024/1024
+    print(f" torch mem {torch_mem_gb} ")
+    return mean, time_ep, timer, torch_mem_gb
 
-@profile(precision=4)
+#@profile(precision=4)
 def validate():
     model.eval()
     with torch.no_grad():
@@ -72,7 +74,7 @@ def validate():
         micro_val = muticlass_f1(output, labels[idx_val])
         return micro_val.item()
 
-@profile(precision=4)
+#@profile(precision=4)
 def test():
     model.load_state_dict(torch.load(checkpt_file))
     model.eval()
@@ -81,7 +83,7 @@ def test():
         micro_test = muticlass_f1(output, labels[idx_test])
         return micro_test.item()
 
-@profile(precision=4)
+#@profile(precision=4)
 def run(seed):
     bad_counter = 0
     best = 0
@@ -90,8 +92,10 @@ def run(seed):
     time_eps = 0
     print("-"*BR_LENH)
     print("Training...")
+    torch_mem_gb_list = []
     for epoch in range(args.epochs):
-        loss_tra, time_ep, timer = train()
+        loss_tra, time_ep, timer, torch_mem_gb = train()
+        torch_mem_gb_list.append(torch_mem_gb)
         time_eps += time_ep
         geval_timer.merge(timer)
         #timer.print()
@@ -136,8 +140,9 @@ def run(seed):
 
     total_train_time = geval_timer.get('train.train') + geval_timer.get('enum')+ geval_timer.get('cuda')+ geval_timer.get('epoch')+ geval_timer.get('train_etc')
     results["total_train_time"].append(total_train_time)
+    results["torch_mem_gb"].append(torch_mem_gb)
 
-@profile(precision=4)
+#@profile(precision=4)
 def evaluate_all():
     # Training settings
     parser = argparse.ArgumentParser()
@@ -203,7 +208,7 @@ def evaluate_all():
 
         torch_dataset = Data.TensorDataset(features_train, labels[idx_train])
         global loader
-        loader = Data.DataLoader(dataset=torch_dataset,batch_size=args.batch,shuffle=True,num_workers=40)
+        loader = Data.DataLoader(dataset=torch_dataset,batch_size=args.batch,shuffle=True,num_workers=12)
         global_timer.lap("Data")
         if False:
             import cProfile

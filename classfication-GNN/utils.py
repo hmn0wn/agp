@@ -13,7 +13,7 @@ def get_linenumber():
     cf = currentframe()
     return cf.f_back.f_lineno
 
-@profile(precision=4)
+#@profile(precision=4)
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 
 	if datastr=="amazon":

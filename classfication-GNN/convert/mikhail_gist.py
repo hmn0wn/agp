@@ -42,8 +42,8 @@ def graphsaint(datastr, dataset_name):
 
 if __name__ == "__main__":
     # Your file storage path. For example, this is shown below.
-    datastr = "/home/test/Downloads/AGP-Approximate_Graph_Propagation-main/classfication-GNN/reddit/reddit.npz"
+    datastr = "../data"
 
     # dataset name, yelp or reddit
-    dataset_name = 'reddit'
+    dataset_name = 'yelp'
     graphsaint(datastr, dataset_name) 

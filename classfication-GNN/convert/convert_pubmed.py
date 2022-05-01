@@ -63,7 +63,7 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0)
     ntrain_div_classes = 20 
     normalize_feats_agp = False
     if agp_load:
-        adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, prefix)).astype(np.bool)
+        adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, prefix)).astype(np.bool_)
       
         feats = np.load('{}/{}/feats.npy'.format(dataset_path, prefix))
         class_map = json.load(open('{}/{}/class_map.json'.format(dataset_path, prefix)))
@@ -97,7 +97,7 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0)
                 ntrain_div_classes=ntrain_div_classes,
                 normalize_attr=None)
 
-    adj_full = csr_matrix((adj_full), dtype=np.bool)
+    adj_full = csr_matrix((adj_full), dtype=np.bool_)
     print(f"adj_full:{adj_full}")
     
     adj_train = adj_full[train_idx, :][:, train_idx]

@@ -237,3 +237,4 @@ clustering-HKPR/result
 *.csv
 */doc/*
 *.css
+*.log

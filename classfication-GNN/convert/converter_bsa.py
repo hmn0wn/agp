@@ -50,8 +50,8 @@ def graphsave(adj, dir):
 
 def load_data(dataset_path, prefix, normalize=True):
     '''
-    adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, prefix)).astype(np.bool)
-    adj_train = scipy.sparse.load_npz('{}/{}/adj_train.npz'.format(dataset_path, prefix)).astype(np.bool)
+    adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, prefix)).astype(np.bool_)
+    adj_train = scipy.sparse.load_npz('{}/{}/adj_train.npz'.format(dataset_path, prefix)).astype(np.bool_)
     role = json.load(open('{}/{}/role.json'.format(dataset_path, prefix)))
     feats = np.load('{}/{}/feats.npy'.format(dataset_path, prefix))
     class_map = json.load(open('{}/{}/class_map.json'.format(dataset_path, prefix)))
@@ -95,7 +95,7 @@ def load_data(dataset_path, prefix, normalize=True):
             ntrain_div_classes=20,
             normalize_attr=None)
     '''
-    adj_full = csr_matrix((adj_full), dtype=np.bool)
+    adj_full = csr_matrix((adj_full), dtype=np.bool_)
     train_feats = attr_matrix[train_idx]
     adj_train = adj_full[train_idx, :][:, train_idx]
     return adj_full, adj_train, attr_matrix , train_feats, labels, train_idx, val_idx, test_idx
@@ -164,8 +164,8 @@ def graphsaint(datastr, dataset_name):
 
 if __name__ == "__main__":
     # Your file storage path. For example, this is shown below.
-    datastr = "/home/test/Documents/genpr_master/genpr/bsa_appnp/data/pubmed.npz"
+    datastr = "../data"
 
     # dataset name, yelp or reddit
-    dataset_name = 'amazon'
+    dataset_name = 'yelp'
     graphsaint(datastr, dataset_name)

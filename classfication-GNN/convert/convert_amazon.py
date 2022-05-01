@@ -120,7 +120,7 @@ def load_graphsage_data(dataset_path, dataset_str, normalize=True, gp_load=True)
     test_idx = np.array(
         [id_map[n] for n in graph_nx.nodes() if graph_nx.node[n]['test']],
         dtype=np.int32)
-    is_train = np.ones((num_idx), dtype=np.bool)
+    is_train = np.ones((num_idx), dtype=np.bool_)
     is_train[val_idx] = False
     is_train[test_idx] = False
     train_idx = np.array([n for n in range(num_idx) if is_train[n]],
