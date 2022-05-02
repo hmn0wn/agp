@@ -49,7 +49,8 @@ def graphsave(adj, dir):
 
 
 def load_data(dataset_path, prefix, normalize=True):
-    adj_full, attr_matrix, labels, train_idx, val_idx, test_idx, _ = ld(ntrain_div_classes=20)
+
+    adj_full, attr_matrix, labels, train_idx, val_idx, test_idx, _ = ld(ntrain_div_classes=20, name=prefix, seed=0)
     adj_full = csr_matrix((adj_full), dtype=np.bool_)
     train_feats = attr_matrix[train_idx]
     adj_train = adj_full[train_idx, :][:, train_idx]

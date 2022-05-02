@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
 from model import GnnAGP
-from utils import load_inductive,muticlass_f1
+from utils import load_inductive, muticlass_f1, acc_f1
 from timer_perf import TimerPerf
 from memory_profiler import profile
 
@@ -75,13 +75,20 @@ def validate():
         micro_val = muticlass_f1(output, labels[idx_val])
         return micro_val.item()
 
-#@profile(precision=4)
+#@profile(precision=10)
+nnodes = len(labels)
+batch_size_logits = 10000
+pred_ = []
 def test():
     model.load_state_dict(torch.load(checkpt_file))
     model.eval()
     with torch.no_grad():
-        output = model(features[idx_test].cuda(args.dev))
-        micro_test = muticlass_f1(output, labels[idx_test])
+        for i in range(0,  nnodes, batch_size_logits):
+            batch_atr = model(features[i:i + batch_size_logits].cuda(args.dev)).cpu().numpy() #generator.attr
+            pred_.append( batch_atr)
+        Z = np.row_stack(pred_)
+        #output = model(features[idx_test].cuda(args.dev))
+        micro_test = acc_f1(Z[idx_test], labels[idx_test])
         return micro_test.item()
 
 #@profile(precision=4)
