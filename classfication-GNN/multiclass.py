@@ -25,6 +25,7 @@ results = {"accur" : [],
 "train_prop_clock_t" : [],
 "full_prop_t" : [],
 "full_prop_clock_t" : [],
+"torch_mem_gb" : [],
 }
 
 global_timer = TimerPerf()
