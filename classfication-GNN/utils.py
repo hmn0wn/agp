@@ -121,3 +121,10 @@ def mutilabel_f1(y_true, y_pred):
 	y_pred[y_pred > 0] = 1
 	y_pred[y_pred <= 0] = 0
 	return f1_score(y_true, y_pred, average="micro")
+
+def acc_f1(output, labels):
+    preds = np.argmax(output, axis=1) #output.max(1)[1]
+    #preds = preds.cpu().detach().numpy()
+    labels = labels.cpu().detach().numpy()
+    micro = f1_score(labels, preds, average='micro')
+    return micro
