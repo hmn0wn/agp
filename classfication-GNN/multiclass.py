@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as Data
 from model import GnnAGP
-from utils import load_inductive,muticlass_f1
+from utils import load_inductive, muticlass_f1, acc_f1
 from timer_perf import TimerPerf
 from memory_profiler import profile
 
