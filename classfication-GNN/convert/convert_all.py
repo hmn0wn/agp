@@ -59,14 +59,14 @@ def graphsave(adj, dir):
         print("Format Error!")
 
 
-def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0):
+def load_data_semi(dataset_path, dataset_name, normalize=True, from_graphsaint=False, seed=0):
     ntrain_div_classes = 20 
     normalize_feats_agp = False
-    if agp_load:
-        adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, prefix)).astype(np.bool_)
+    if from_graphsaint:
+        adj_full = scipy.sparse.load_npz('{}/{}/adj_full.npz'.format(dataset_path, dataset_name)).astype(np.bool_)
       
-        feats = np.load('{}/{}/feats.npy'.format(dataset_path, prefix))
-        class_map = json.load(open('{}/{}/class_map.json'.format(dataset_path, prefix)))
+        feats = np.load('{}/{}/feats.npy'.format(dataset_path, dataset_name))
+        class_map = json.load(open('{}/{}/class_map.json'.format(dataset_path, dataset_name)))
         class_map = {int(k): v for k, v in class_map.items()}
         assert len(class_map) == feats.shape[0]
         
@@ -92,7 +92,7 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0)
     else:
         adj_full, feats, labels, train_idx, val_idx, test_idx = \
             utils.get_data(
-                f"{dataset_path}/{prefix}.npz",
+                f"{dataset_path}/{dataset_name}.npz",
                 seed=seed,
                 ntrain_div_classes=ntrain_div_classes,
                 normalize_attr=None)
@@ -108,25 +108,25 @@ def load_data_semi(dataset_path, prefix, normalize=True, agp_load=False, seed=0)
         scaler.fit(train_feats)
         feats = scaler.transform(feats)
 
-    if 'pubmed' in prefix or 'cora_full' in prefix:
-        feats = feats.toarray()
-        train_feats = train_feats.toarray()
-
     return adj_full, adj_train, feats, train_feats, labels, train_idx, val_idx, test_idx
 
 
-def graphsaint(datastr, dataset_name, agp_load):
-    
-    adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data_semi(datastr, dataset_name, agp_load=agp_load)
+def graphsaint(dataset_path, dataset_name, from_graphsaint):
+    adj_full, adj_train, feats, train_feats, labels, idx_train, idx_val, idx_test = load_data_semi(dataset_path, dataset_name, from_graphsaint=from_graphsaint)
     semi_name = f"{dataset_name}_semi"
-    graphsave(adj_full, dir=f'{datastr}/{semi_name}_full_adj_')
-    graphsave(adj_train, dir=f'{datastr}/{semi_name}_train_adj_')
+    graphsave(adj_full, dir=f'{dataset_path}/{semi_name}_full_adj_')
+    graphsave(adj_train, dir=f'{dataset_path}/{semi_name}_train_adj_')
     #print(feats)
+    
+    if type(feats)!=np.ndarray:
+        feats = feats.toarray()
+    if type(train_feats)!=np.ndarray:
+        train_feats = train_feats.toarray()
     feats = np.array(feats, dtype=np.float64)
     train_feats = np.array(train_feats , dtype=np.float64)
-    np.save(f'{datastr}/{semi_name}_feat.npy', feats)
-    np.save(f'{datastr}/{semi_name}_train_feat.npy', train_feats)
-    np.savez(f'{datastr}/{semi_name}_labels.npz', labels=labels, idx_train=idx_train, idx_val=idx_val, idx_test=idx_test)
+    np.save(f'{dataset_path}/{semi_name}_feat.npy', feats)
+    np.save(f'{dataset_path}/{semi_name}_train_feat.npy', train_feats)
+    np.savez(f'{dataset_path}/{semi_name}_labels.npz', labels=labels, idx_train=idx_train, idx_val=idx_val, idx_test=idx_test)
 
 
 if __name__ == "__main__":
@@ -137,15 +137,10 @@ if __name__ == "__main__":
     mkdir(f"{path}/../pretrained")
     mkdir(f"{path}/dataset")
     
-    dataset_name = "amazon"
-    agp_load = False
-    if dataset_name == "amazon":
-        agp_load = True
-
-    datastr = f"{path}/../data"
-    #datastr = f"{path}/data"
+    dataset_path = f"{path}/../data"
+    #dataset_path = f"{path}/data"
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
-        agp_load = sys.argv[2]=="True"
+        from_graphsaint = sys.argv[2]=="True"
 
-    graphsaint(datastr, dataset_name, agp_load)
+    graphsaint(dataset_path, dataset_name, from_graphsaint)

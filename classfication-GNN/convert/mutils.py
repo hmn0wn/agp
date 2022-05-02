@@ -165,7 +165,9 @@ def train_stopping_split(labels: np.ndarray,   ntrain_per_class: int = 20,
     train_idx_split = []
     idx = np.arange(len(labels))
     print(len(np.unique(labels)))
-    for i in range(max(labels) + 1):
+    print(labels[0])
+    print(max(labels))
+    for i in range(np.max(labels) + 1):
         if len(idx[labels == i]) < ntrain_per_class:
             train_idx_split.append(idx[labels == i])
         else:

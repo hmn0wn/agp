@@ -15,29 +15,40 @@ def get_linenumber():
 
 #@profile(precision=4)
 def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
-
-	if datastr=="amazon":
-		train_m = 1950; train_n = 1500
-		full_m = 263793649; full_n = 1066627
-	if datastr=="cora_full_semi":
-		train_m = 854; train_n = 1392
-		full_m = 125370; full_n = 18800
+	if datastr=="citeseer_semi":
+		train_m = 27; train_n = 120
+		full_m = 7388; full_n = 2110
+	if datastr=="cora_ml_semi":
+		train_m = 64; train_n = 140
+		full_m = 15962; full_n = 2810
 	if datastr=="pubmed_semi":
 		train_m = 0; train_n = 60
 		full_m = 88648; full_n = 19717
-	if datastr=="Amazon2M":
-		train_m=62382461; train_n=1709997
-		full_m=126167053; full_n=2449029
-	if datastr=='yelp':
-		train_m=7949403; train_n=537635
-		full_m=13954819; full_n=716847
-	if datastr=='reddit':
-		train_m=10907170; train_n=153932
-		full_m=23446803; full_n=232965
+		#EL: (88648,)  full_m
+		#PL: (19718,)  full_n + 1
+		#EL: (0,)      train_m
+		#PL: (61,)     train_n + 1
+	if datastr=="cora_full_semi":
+		train_m = 854; train_n = 1392
+		full_m = 125370; full_n = 18800
 	if datastr=='reddit_semi':
 		train_m=1144; train_n=820
 		full_m=114615892; full_n=232965
 
+	if datastr=='yelp':
+		train_m = 1950; train_n = 1500
+		full_m=263793649; full_n=1066627
+	if datastr=="ogbn-products":
+		train_m=62382461; train_n=1709997
+		full_m=126167053; full_n=2449029
+	if datastr=="amazon":
+		train_m = 1950; train_n = 1500
+		full_m = 263793649; full_n = 1066627
+
+	if datastr=='reddit':
+		train_m=10907170; train_n=153932
+		full_m=23446803; full_n=232965
+		
 	py_agp=AGP()
 	process = psutil.Process(os.getpid())
 	ram_prev = process.memory_info().rss

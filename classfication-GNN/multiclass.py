@@ -76,14 +76,13 @@ def validate():
         return micro_val.item()
 
 #@profile(precision=10)
-nnodes = len(labels)
 batch_size_logits = 10000
 pred_ = []
 def test():
     model.load_state_dict(torch.load(checkpt_file))
     model.eval()
     with torch.no_grad():
-        for i in range(0,  nnodes, batch_size_logits):
+        for i in range(0,  len(labels), batch_size_logits):
             batch_atr = model(features[i:i + batch_size_logits].cuda(args.dev)).cpu().numpy() #generator.attr
             pred_.append( batch_atr)
         Z = np.row_stack(pred_)
