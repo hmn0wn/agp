@@ -86,7 +86,7 @@ def load_data(dataset_path, prefix, normalize=True):
     adj_train = adj_train + sp.eye(adj_train.shape[0])
     adj_full = adj_full + sp.eye(adj_full.shape[0])
     '''
-    adj_full, attr_matrix, labels, train_idx, val_idx, test_idx, _ = ld(ntrain_div_classes=20)
+    adj_full, attr_matrix, labels, train_idx, val_idx, test_idx, _ = ld(ntrain_div_classes=20, name=prefix, seed=0)
     '''
     adj_full, attr_matrix, labels, train_idx, val_idx, test_idx = \
         utils.get_data(
