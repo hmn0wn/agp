@@ -1,3 +1,4 @@
+from cProfile import label
 import pickle as pkl
 import sys
 import os
@@ -14,6 +15,7 @@ import mutils as utils
 import scipy.sparse
 import struct
 from sklearn.preprocessing import StandardScaler
+from sparsegraph import SparseGraph
 
 import os, errno
 
@@ -82,13 +84,18 @@ def load_data_semi(dataset_path, dataset_name, normalize=True, from_graphsaint=F
             offset = min(class_map.values())
             for k, v in class_map.items():
                 labels[k][v - offset] = 1
+        
+        labels = np.argmax(labels, axis=-1)
+        g = SparseGraph(adj_matrix=adj_full, attr_matrix=feats, labels=labels)
+        g.standardize(select_lcc=True, make_undirected=True, no_self_loops=False)
 
-        num_classes = len(class_map) + 1
+        num_classes = g.labels.max() + 1
         n_train = num_classes * ntrain_div_classes
         n_val = n_train * 2
-        train_idx, val_idx = utils.train_stopping_split(labels=labels, ntrain_per_class=ntrain_div_classes,  seed=seed, nval=n_val)
+        train_idx, val_idx = utils.train_stopping_split(labels=g.labels, ntrain_per_class=ntrain_div_classes,  seed=seed, nval=n_val)
         train_val_idx = np.concatenate((train_idx, val_idx))
-        test_idx = np.sort(np.setdiff1d(np.arange(num_vertices), train_val_idx))
+        test_idx = np.sort(np.setdiff1d(np.arange(len(g.labels)), train_val_idx))
+        adj_full, feats, labels = g.adj_matrix, g.attr_matrix, g.labels
     else:
         adj_full, feats, labels, train_idx, val_idx, test_idx = \
             utils.get_data(

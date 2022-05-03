@@ -35,13 +35,13 @@ def load_inductive(datastr,agp_alg,alpha,t,rmax,L):
 		train_m=1144; train_n=820
 		full_m=114615892; full_n=232965
 
-	if datastr=='yelp':
-		train_m = 1950; train_n = 1500
-		full_m=263793649; full_n=1066627
-	if datastr=="ogbn-products":
-		train_m=62382461; train_n=1709997
-		full_m=126167053; full_n=2449029
-	if datastr=="amazon":
+	if datastr=='yelp_semi':
+		train_m = 420; train_n = 420
+		full_m=13927667; full_n=703655
+	if datastr=="ogbn-products_semi":
+		train_m=284; train_n=874
+		full_m=123612734; full_n=2385903
+	if datastr=="amazon_semi":
 		train_m = 1950; train_n = 1500
 		full_m = 263793649; full_n = 1066627
 
